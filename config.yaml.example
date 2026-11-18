@@ -1,0 +1,28 @@
+# Конфигурация primedos. Любое поле можно перекрыть флагом командной строки.
+
+target: ""                  # домен или URL; пусто — спросим в интерфейсе
+level: 1                    # 1 — лёгкий, 2 — средний, 3 — сложный
+mode: 1                     # 1 — до падения, 2 — бесконечный, 3 — фиксированное время
+duration: 1m                # для mode: 3
+concurrency: 256            # общее число воркеров
+rate_limit_mbps: 0          # 0 — без ограничения
+proxies_file: ""            # http://user:pass@host:port или socks5://host:port, по одному в строке
+timeout_ms: 5000
+health_interval_ms: 500
+hw_timestamps: true
+dry_run: false
+verbose: false
+
+paths:
+  - /
+  - /search?q=test
+  - /api/v1/items
+  - /login
+  - /cart
+
+user_agents:
+  - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15"
+  - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0"
+  - "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1"

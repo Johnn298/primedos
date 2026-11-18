@@ -1,0 +1,6 @@
+primedos
+report_*.json
+report_*.csv
+proxies.txt
+config.yaml
+*.log
