@@ -74,10 +74,26 @@ make run             # go run ./cmd/primedos
 | `--proxies` | файл прокси, по одному в строке (`http://`, `socks5://`, `user:pass@host:port`) |
 | `--dry-run` | без внешних соединений, кроме DNS |
 | `--hw-ts` / `--no-ts` | аппаратные метки времени |
+| `--socket` | unix-сокет для управления (JSON) |
+| `--headless` | без TUI, движок под управлением сокета (только с `--dry-run`) |
 
 ## Отчёт
 
 `report_<host>_<timestamp>.json` и `.csv`: цель, IP, CDN, уровень, режим, длительность, время до падения, объём на проводе и полезный, запросы, средняя/пиковая скорость, PPS/RPS, RTT p50/p95/p99, потери, ошибки, число живых прокси, финальное состояние.
+
+## Бот в Telegram
+
+Бот управляет только сессиями `--dry-run`: показывает телеметрию, запускает и останавливает прогон интерфейса без трафика. Боевые сессии из Telegram не запускаются, сервер отвечает `403` на такой запрос.
+
+```bash
+cp bot.yaml.example bot.yaml
+$EDITOR bot.yaml                      # token от BotFather и allowed_users
+make build
+./primedos --dry-run --headless --socket "$XDG_RUNTIME_DIR/primedos.sock"
+./primedos-bot --config bot.yaml      # во втором терминале
+```
+
+Команды: `/start` (уровень, цель, режим), `/status`, `/stop`, `/reports`. Пока `allowed_users` пуст, бот отвечает только твоим `id`, чтобы его можно было вписать в конфиг.
 
 ## Ограничения
 

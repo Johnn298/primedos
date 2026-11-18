@@ -1,15 +1,19 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 
 	"primedos/internal/config"
+	"primedos/internal/remote"
 	"primedos/internal/ui"
 )
 
@@ -31,6 +35,8 @@ func main() {
 	flag.BoolVar(&cfg.DryRun, "dry-run", cfg.DryRun, "интерфейс и телеметрия без генерации трафика")
 	flag.BoolVar(&cfg.Verbose, "verbose", cfg.Verbose, "подробный лог")
 	flag.BoolVar(&cfg.HWTimestamps, "hw-ts", cfg.HWTimestamps, "аппаратные метки времени")
+	socketPath := flag.String("socket", "", "unix-сокет для управления (JSON)")
+	headless := flag.Bool("headless", false, "без TUI, движок под управлением сокета (только с --dry-run)")
 	noTS := flag.Bool("no-ts", false, "отключить аппаратные метки времени")
 	flag.Parse()
 
@@ -41,9 +47,38 @@ func main() {
 		fmt.Fprintln(os.Stderr, "конфиг:", err)
 		os.Exit(2)
 	}
+	if *headless {
+		if *socketPath == "" {
+			fmt.Fprintln(os.Stderr, "--headless требует --socket")
+			os.Exit(2)
+		}
+		if !cfg.DryRun {
+			fmt.Fprintln(os.Stderr, "--headless работает только с --dry-run: удалённый запуск боевых сессий запрещён")
+			os.Exit(2)
+		}
+	}
 
 	fmt.Println("запускается ддос программа созданная тг @PrimeNikee")
 	time.Sleep(400 * time.Millisecond)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if *socketPath != "" {
+		srv := remote.NewServer(*socketPath, cfg)
+		go func() {
+			if err := srv.Serve(ctx); err != nil {
+				fmt.Fprintln(os.Stderr, "сокет:", err)
+				stop()
+			}
+		}()
+	}
+
+	if *headless {
+		fmt.Println("headless: управление через сокет", *socketPath)
+		<-ctx.Done()
+		return
+	}
 
 	p := tea.NewProgram(ui.New(cfg), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

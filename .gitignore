@@ -1,6 +1,8 @@
 /primedos
+/primedos-bot
 report_*.json
 report_*.csv
 proxies.txt
 config.yaml
+bot.yaml
 *.log
